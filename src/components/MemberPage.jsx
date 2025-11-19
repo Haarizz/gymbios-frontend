@@ -143,6 +143,8 @@ export default function MemberPage() {
       });
 
       setMemberId(generateMemberId());
+      navigate("/members");
+
     } catch (err) {
       console.error("ADD MEMBER ERROR:", err);
 
@@ -464,7 +466,8 @@ export default function MemberPage() {
               Cancel
             </button>
 
-            <button className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+            <button  className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+
               Save Member
             </button>
           </div>
