@@ -73,6 +73,7 @@ useEffect(() => {
                   onChange={handleChange}
                   className="w-full border rounded p-2"
                   placeholder="Enter first name"
+                  required
                 />
               </div>
 
@@ -86,6 +87,7 @@ useEffect(() => {
                   onChange={handleChange}
                   className="w-full border rounded p-2"
                   placeholder="Enter last name"
+                  required
                 />
               </div>
 
@@ -117,6 +119,7 @@ useEffect(() => {
                   value={form.role}
                   onChange={handleChange}
                   className="w-full border rounded p-2"
+                  required
                 >
                   <option value="">Select Role</option>
                   <option value="Trainer">Trainer</option>
@@ -136,6 +139,7 @@ useEffect(() => {
                   value={form.department}
                   onChange={handleChange}
                   className="w-full border rounded p-2"
+                  required
                 >
                   <option value="">Select Department</option>
                   <option value="Fitness">Fitness</option>
@@ -214,6 +218,7 @@ useEffect(() => {
                   onChange={handleChange}
                   className="w-full border rounded p-2"
                   placeholder="05xxxxxxxx"
+                  required
                 />
               </div>
 
@@ -226,6 +231,7 @@ useEffect(() => {
                   type="email"
                   className="w-full border rounded p-2"
                   placeholder="example@gym.com"
+                  required
                 />
               </div>
             </div>
