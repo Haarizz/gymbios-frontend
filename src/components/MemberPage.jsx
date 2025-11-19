@@ -4,7 +4,6 @@ import Sidebar from "./Sidebar";
 import { useNavigate } from "react-router-dom";
 
 export default function MemberPage() {
-
   // Format date to yyyy-mm-dd
   const toSpringDate = (value) => {
     if (!value) return null;
@@ -22,7 +21,6 @@ export default function MemberPage() {
     return `MBR-${random}`;
   };
 
-  // ---------- MAIN FORM ----------
   const [form, setForm] = useState({
     firstname: "",
     lastname: "",
@@ -42,7 +40,6 @@ export default function MemberPage() {
     id_type: "",
     id_number: "",
 
-    // HEALTH
     medconditions: "",
     currmedications: "",
     bloodtype: "",
@@ -64,53 +61,56 @@ export default function MemberPage() {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  // --------- SUBMIT FORM ----------
+  // --------- FIXED SUBMIT FORM ----------
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
     setIsSubmitting(true);
 
     const payload = {
-  firstname: form.firstname,
-  lastname: form.lastname,
-  gender: form.gender,
-  email: form.email,
-  phone: form.phone,
-  nationality: form.nationality,
-  birthday: toSpringDate(form.birthday),
-  address: form.address,
+      firstname: form.firstname,
+      lastname: form.lastname,
+      gender: form.gender,
+      email: form.email,
+      phone: form.phone,
+      nationality: form.nationality,
+      birthday: toSpringDate(form.birthday),
+      address: form.address,
 
-  memberId: memberId,
-  role: form.role,
-  status: form.status,
-  password: form.password,
+      memberId: memberId,
+      role: form.role,
+      status: form.status,
+      password: form.password,
 
-  membership_type: form.membership_type,
-  membership_plan: form.membership_plan,
+      membership_type: form.membership_type,
+      membership_plan: form.membership_plan,
 
-  id_type: form.id_type,
-  id_number: form.id_number,
+      id_type: form.id_type,
+      id_number: form.id_number,
 
-  emergency_contact: form.emergency_contact,
-  emergency_phone: form.emergency_phone,
+      emergency_contact: form.emergency_contact,
+      emergency_phone: form.emergency_phone,
 
-  // MERGED HEALTH FIELDS
-  medicalConditions: form.medconditions || null,
-  allergies: form.allergies || null,
-  medications: form.currmedications || null,
-  chronicIllness: form.illness || null,
-  bloodType: form.bloodtype || null,
-  height: form.height ? parseInt(form.height) : null,
-  weight: form.weight ? parseInt(form.weight) : null,
-};
-
+      medicalConditions: form.medconditions || null,
+      allergies: form.allergies || null,
+      medications: form.currmedications || null,
+      chronicIllness: form.illness || null,
+      bloodType: form.bloodtype || null,
+      height: form.height ? parseInt(form.height) : null,
+      weight: form.weight ? parseInt(form.weight) : null,
+    };
 
     console.log("Submitting:", payload);
-    const res = await addMember(payload);
 
-    if (res.ok) {
+    try {
+      const res = await addMember(payload);  // Axios POST
+
+      console.log("Backend Response:", res.data);
+
+      // SUCCESS — Show message
       setMessage("Member Added Successfully!");
 
+      // Reset form
       setForm({
         firstname: "",
         lastname: "",
@@ -143,13 +143,20 @@ export default function MemberPage() {
       });
 
       setMemberId(generateMemberId());
-    } else {
-      setMessage("Failed to Add Member: " + (res.body?.message || res.error));
+    } catch (err) {
+      console.error("ADD MEMBER ERROR:", err);
+
+      const errorMsg =
+        err.response?.data?.message ||
+        err.response?.data ||
+        err.message ||
+        "Unknown error";
+
+      setMessage("Failed to Add Member: " + errorMsg);
     }
 
     setIsSubmitting(false);
   };
-
   // ------------- UI -------------
   return (
     <div className="flex h-screen font-sans text-gray-900 bg-gray-50">
