@@ -25,13 +25,27 @@ export default function StaffPage() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const res = await createStaff(form);
+  try {
+    const res = await createStaff(form);  // axios call
+    console.log("STAFF CREATED:", res.data);
 
-    if (res.ok) navigate("/staff");
-    else alert("Failed to create staff");
-  };
+    alert("Staff added successfully!");
+    navigate("/staff");
+  } catch (err) {
+    console.error("CREATE STAFF ERROR:", err);
+
+    const msg =
+      err.response?.data?.message ||
+      err.response?.data ||
+      err.message ||
+      "Unknown error";
+
+    alert("Failed to create staff: " + msg);
+  }
+};
+
 
   // AUTO GENERATE EMPLOYEE ID
 const generateEmployeeId = () => {
