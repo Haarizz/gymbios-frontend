@@ -1,10 +1,14 @@
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import { createStaff } from "../api/staff";
 import { useNavigate } from "react-router-dom";
 
 export default function StaffPage() {
   const navigate = useNavigate();
+
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [form, setForm] = useState({
     firstname: "",
@@ -25,39 +29,66 @@ export default function StaffPage() {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
+    setError("");
+    setMessage("");
 
-  try {
-    const res = await createStaff(form);  // axios call
-    console.log("STAFF CREATED:", res.data);
+    // basic client-side validation (optional)
+    if (!form.firstname || !form.lastname || !form.role || !form.phone || !form.email) {
+      setError("Please fill required fields: First name, Last name, Role, Phone and Email.");
+      return;
+    }
 
-    alert("Staff added successfully!");
-    navigate("/staff");
-  } catch (err) {
-    console.error("CREATE STAFF ERROR:", err);
+    setIsSubmitting(true);
 
-    const msg =
-      err.response?.data?.message ||
-      err.response?.data ||
-      err.message ||
-      "Unknown error";
+    try {
+      const res = await createStaff(form); // axios POST
+      // success
+      setMessage("Staff added successfully.");
+      // optionally clear form or re-generate ID
+      setForm((prev) => ({
+        ...prev,
+        firstname: "",
+        lastname: "",
+        role: "",
+        department: "",
+        branch: "",
+        monthlyTarget: "",
+        target: "",
+        phone: "",
+        email: "",
+        address: "",
+        employeeId: prev.employeeId, // keep or regenerate if you want
+      }));
 
-    alert("Failed to create staff: " + msg);
-  }
-};
-
+      // redirect after short delay so the user sees the success message
+      setTimeout(() => navigate("/staff"), 700);
+    } catch (err) {
+      // produce a helpful human-friendly error message
+      const msg =
+        err.response?.data?.message ||
+        err.response?.data ||
+        err.message ||
+        "Unknown error";
+      setError("Failed to create staff: " + msg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // AUTO GENERATE EMPLOYEE ID
-const generateEmployeeId = () => {
-  return "EMP" + Math.floor(1000 + Math.random() * 9000); // EMP1234
-};
-useEffect(() => {
-  setForm((prev) => ({
-    ...prev,
-    employeeId: generateEmployeeId(),
-  }));
-}, []);
+  const generateEmployeeId = () => {
+    return "EMP" + Math.floor(1000 + Math.random() * 9000); // EMP1234
+  };
 
+  useEffect(() => {
+    setError("");
+    setForm((prev) => ({
+      ...prev,
+      employeeId: generateEmployeeId(),
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -66,21 +97,21 @@ useEffect(() => {
       <div className="flex-1 p-6 overflow-auto max-w-4xl mx-auto">
         <h1 className="text-2xl font-semibold mb-4">Add Staff Member</h1>
 
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white p-6 rounded shadow space-y-6"
-        >
+        {message && (
+          <div className="mb-4 p-3 rounded bg-green-100 text-green-800">{message}</div>
+        )}
+        {error && (
+          <div className="mb-4 p-3 rounded bg-red-100 text-red-800">{error}</div>
+        )}
+
+        <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow space-y-6">
           {/* SECTION 1: BASIC INFO */}
           <div>
-            <h2 className="text-lg font-semibold mb-3 text-teal-700">
-              Basic Information
-            </h2>
+            <h2 className="text-lg font-semibold mb-3 text-teal-700">Basic Information</h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1">
-                  First Name
-                </label>
+                <label className="block text-sm font-medium mb-1">First Name</label>
                 <input
                   name="firstname"
                   value={form.firstname}
@@ -92,9 +123,7 @@ useEffect(() => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">
-                  Last Name
-                </label>
+                <label className="block text-sm font-medium mb-1">Last Name</label>
                 <input
                   name="lastname"
                   value={form.lastname}
@@ -106,9 +135,7 @@ useEffect(() => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">
-                  Employee ID
-                </label>
+                <label className="block text-sm font-medium mb-1">Employee ID</label>
                 <input
                   name="employeeId"
                   value={form.employeeId}
@@ -121,9 +148,7 @@ useEffect(() => {
 
           {/* SECTION 2: JOB DETAILS */}
           <div>
-            <h2 className="text-lg font-semibold mb-3 text-teal-700">
-              Job Details
-            </h2>
+            <h2 className="text-lg font-semibold mb-3 text-teal-700">Job Details</h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -145,9 +170,7 @@ useEffect(() => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">
-                  Department
-                </label>
+                <label className="block text-sm font-medium mb-1">Department</label>
                 <select
                   name="department"
                   value={form.department}
@@ -182,15 +205,11 @@ useEffect(() => {
 
           {/* SECTION 3: TARGETS */}
           <div>
-            <h2 className="text-lg font-semibold mb-3 text-teal-700">
-              Performance Targets
-            </h2>
+            <h2 className="text-lg font-semibold mb-3 text-teal-700">Performance Targets</h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1">
-                  Monthly Target
-                </label>
+                <label className="block text-sm font-medium mb-1">Monthly Target</label>
                 <input
                   name="monthlyTarget"
                   value={form.monthlyTarget}
@@ -202,9 +221,7 @@ useEffect(() => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">
-                  Total Target
-                </label>
+                <label className="block text-sm font-medium mb-1">Total Target</label>
                 <input
                   name="target"
                   value={form.target}
@@ -219,9 +236,7 @@ useEffect(() => {
 
           {/* SECTION 4: CONTACT */}
           <div>
-            <h2 className="text-lg font-semibold mb-3 text-teal-700">
-              Contact Information
-            </h2>
+            <h2 className="text-lg font-semibold mb-3 text-teal-700">Contact Information</h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -273,8 +288,12 @@ useEffect(() => {
               Cancel
             </button>
 
-            <button className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-              Save Staff
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-60"
+            >
+              {isSubmitting ? "Saving..." : "Save Staff"}
             </button>
           </div>
         </form>
