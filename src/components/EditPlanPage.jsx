@@ -178,13 +178,14 @@ export default function EditPlanPage() {
           .filter(Boolean),
       };
 
-      const res = await updatePlan(planId, payload);
-      if (!res.ok && res.status !== 200) {
-        const txt = await res.text();
-        setError("Failed to update plan: " + txt);
-      } else {
-        navigate("/plans");
-      }
+      try {
+    await updatePlan(planId, payload);
+    navigate("/plans");
+} catch (err) {
+    const msg = err.response?.data || err.message;
+    setError("Failed to update plan: " + msg);
+}
+
     } catch (err) {
       setError("Network or server error: " + err.message);
     } finally {

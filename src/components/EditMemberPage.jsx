@@ -134,17 +134,23 @@ export default function EditMemberPage() {
     };
 
     try {
-      const res = await updateMember(id, payload);
-      if (!res.ok) {
-        const txt = await res.text();
-        setError("Failed to update member: " + txt);
-      } else {
-        setMessage("Member updated successfully.");
-        // navigate back to members list after short delay (optional)
-        setTimeout(() => navigate("/members"), 700);
-      }
-    } catch (err) {
-      setError("Network error: " + err.message);
+    const res = await updateMember(id, payload);
+
+    // SUCCESS
+    setMessage("Member updated successfully.");
+
+    setTimeout(() => navigate("/members"), 700);
+
+} catch (err) {
+    console.error("Update Member Error:", err);
+
+    const errorMsg =
+        err.response?.data?.message ||
+        err.response?.data ||
+        err.message ||
+        "Unknown error";
+
+    setError("Failed to update member: " + errorMsg);
     } finally {
       setIsSubmitting(false);
     }

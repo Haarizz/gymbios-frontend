@@ -123,15 +123,14 @@ export default function CreatePlanPage() {
       };
 
       // Assuming createPlan expects this payload structure
-      const res = await createPlan(payload);
-      console.log(res);
-      
-      if (!res.ok && res.status !== 201) {
-        const txt = await res.text();
-        setError("Failed to create plan: " + txt);
-      } else {
-        navigate("/plans");
-      }
+      try {
+    await createPlan(payload);
+    navigate("/plans");
+} catch (err) {
+    const msg = err.response?.data || err.message;
+    setError("Failed to create plan: " + msg);
+}
+
     } catch (err) {
       setError("Network or server error: " + err.message);
     } finally {

@@ -32,10 +32,13 @@ export default function EditStaffPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const res = await updateStaff(id, form);
+    try {
+    await updateStaff(id, payload);
+    navigate("/staff");
+} catch (err) {
+    setError("Failed to update staff: " + (err.response?.data || err.message));
+}
 
-    if (res.ok) navigate("/staff");
-    else alert("Update failed");
   };
 
   if (loading || !form) return <div className="p-6">Loading...</div>;
