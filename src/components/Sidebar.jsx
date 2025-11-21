@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation,Navigate, useNavigate } from "react-router-dom";
 import { HiChevronDown, HiMenu } from "react-icons/hi";
 import { sidebarMenu } from "../api/sidebarMenu";
 import { useState } from "react";
@@ -6,7 +6,7 @@ import { useState } from "react";
 export default function Sidebar({ isOpen, toggleSidebar }) {
   const location = useLocation();
   const [openSections, setOpenSections] = useState({});
-
+  const navigate=useNavigate();
   const toggleSection = (section) => {
     setOpenSections((prev) => ({
       ...prev,
@@ -59,7 +59,6 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         <nav className="flex-1 overflow-auto px-2 pt-3">
           {sidebarMenu.map((group, idx) => (
             <div key={idx} className="mb-3">
-
               {/* Section Title */}
               <div className="text-teal-200 uppercase text-xs font-bold px-3 py-2 tracking-wide">
                 {group.section}
@@ -156,8 +155,11 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
           ))}
         </nav>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-teal-700">
+        {/* Footer - Clickable Profile */}
+        <div
+          className="p-4 border-t border-teal-700 cursor-pointer hover:bg-teal-700 transition"
+          onClick={() => (navigate('/profile'))}
+        >
           <div className="flex items-center gap-3">
             <div className="rounded-full bg-teal-600 h-10 w-10 flex items-center justify-center">
               GM
@@ -167,7 +169,14 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
               <p className="text-xs text-teal-300">admin@gymbios.com</p>
             </div>
           </div>
-          <button onClick={logout} className="mt-3 w-full px-3 py-2 bg-teal-600 rounded text-sm hover:bg-teal-500">
+        </div>
+
+        {/* Sign Out Button (still separate) */}
+        <div className="px-4 pb-4">
+          <button
+            onClick={logout}
+            className="mt-3 w-full px-3 py-2 bg-teal-600 rounded text-sm hover:bg-teal-500"
+          >
             Sign Out
           </button>
         </div>

@@ -14,7 +14,7 @@
   import PrivateRoute from "./components/PrivateRoute";
 
   export default function App() {
-
+    
     return (
       <Routes>
         <Route path="/" element={<Navigate to="/login" />} />
@@ -109,6 +109,15 @@
           element={
             <PrivateRoute>
               <EditPlanPage />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/profile"
+          element={
+            <PrivateRoute>
+              <MyProfile />
             </PrivateRoute>
           }
         />
