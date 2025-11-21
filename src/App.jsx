@@ -12,8 +12,7 @@
   import EditStaffPage from "./components/EditStaffPage";
   import LoginPage from "./components/LoginPage";
   import PrivateRoute from "./components/PrivateRoute";
-import MyProfile from "../../../../../Desktop/frontend_work/Gymbios frontend/src/components/MyProfile";
-
+  import MyProfile from "./components/MyProfile";
   export default function App() {
     
     return (
