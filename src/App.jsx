@@ -12,6 +12,7 @@
   import EditStaffPage from "./components/EditStaffPage";
   import LoginPage from "./components/LoginPage";
   import PrivateRoute from "./components/PrivateRoute";
+import MyProfile from "../../../../../Desktop/frontend_work/Gymbios frontend/src/components/MyProfile";
 
   export default function App() {
     
@@ -117,7 +118,7 @@
           path="/profile"
           element={
             <PrivateRoute>
-              <MyProfile />
+              <MyProfile/>
             </PrivateRoute>
           }
         />
