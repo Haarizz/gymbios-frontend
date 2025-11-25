@@ -110,6 +110,7 @@ export default function AddCategoryPage() {
       setCategoryNumber("");
       setDescription("");
       setErrors({});
+      navigate("/categories");
     } catch (err) {
       console.error("Create failed", err);
       // optionally set an error state to show to the user
