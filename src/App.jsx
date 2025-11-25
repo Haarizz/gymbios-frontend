@@ -13,6 +13,14 @@
   import LoginPage from "./components/LoginPage";
   import PrivateRoute from "./components/PrivateRoute";
   import MyProfile from "./components/MyProfile";
+  import ProductsPage from "./components/ProductsPage";
+  import AddProductPage from "./components/AddProductPage";
+  import EditProductPage from "./components/EditProductPage";
+import CategoriesPage from "./components/CategoriesPage";
+import AddCategoryPage from "./components/AddCategoryPage";
+import EditCategoryPage from "./components/EditCategoryPage";
+
+
   export default function App() {
     
     return (
@@ -117,7 +125,59 @@
           path="/profile"
           element={
             <PrivateRoute>
-              <MyProfile/>
+              <MyProfile />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/products"
+          element={
+            <PrivateRoute>
+              <ProductsPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/products/new"
+          element={
+            <PrivateRoute>
+              <AddProductPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/products/:id/edit"
+          element={
+            <PrivateRoute>
+              <EditProductPage />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/categories"
+          element={
+            <PrivateRoute>
+              <CategoriesPage />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/categories/new"
+          element={
+            <PrivateRoute>
+              <AddCategoryPage />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/categories/:id/edit"
+          element={
+            <PrivateRoute>
+              <EditCategoryPage />
             </PrivateRoute>
           }
         />

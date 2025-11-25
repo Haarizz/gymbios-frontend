@@ -1,4 +1,4 @@
-const BASE_URL = "https://gymbios-backend.onrender.com/api/auth";
+const BASE_URL = "http://localhost:8080/api/auth";
 
 export const login = async (email, password) => {
   const response = await fetch(`${BASE_URL}/login`, {
