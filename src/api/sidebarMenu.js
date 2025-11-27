@@ -43,7 +43,7 @@ export const sidebarMenu = [
     { label: "Category", icon: HiTemplate, path: "/categories" },
     { label: "Purchase Order", icon: HiShoppingCart, path: "/purchase-orders" },
     { label: "Purchase", icon: HiShoppingCart, path: "/purchases" },
-    { label: "Wastage / Returns", icon: HiChartPie, path: "/wastage" },
+    { label: "Wastage / Returns", icon: HiChartPie, path: "/wastage-return" },
     { label: "Production / Recipe", icon: HiCollection, path: "/production" },
   ],
 },
@@ -62,7 +62,7 @@ export const sidebarMenu = [
     items: [
       { label: "Staffs & Trainers", icon: HiUsers, path: "/staff" },
       { label: "Trainings & Classes", icon: HiCalendar, path: "/classes" },
-      { label: "Payroll", icon: HiTemplate, path: "/payroll" },
+      { label: "Bookings", icon: HiTemplate, path: "/bookings" },
       {
         label: "Salary Payments",
         icon: HiCollection,

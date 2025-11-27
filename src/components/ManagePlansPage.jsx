@@ -52,10 +52,9 @@ export default function ManagePlansPage() {
   const familyPlans = plans.filter(p => p.type === 'Family').length;
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    
 
-      {/* Sidebar */}
-      <Sidebar isOpen={isSidebarOpen} toggleSidebar={() => setSidebarOpen(!isSidebarOpen)} />
+      
         
       <div className="flex-1 p-6 overflow-auto">
 
@@ -285,6 +284,6 @@ export default function ManagePlansPage() {
           </table>
         </div>
       </div>
-    </div>
+ 
   );
 }

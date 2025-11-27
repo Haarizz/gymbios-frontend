@@ -140,8 +140,8 @@ export default function CreatePlanPage() {
 console.log(form);
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar isOpen={isSidebarOpen} toggleSidebar={() => setSidebarOpen(!isSidebarOpen)} />
+ 
+     
 
       <div className="flex-1 overflow-auto p-6 max-w-4xl mx-auto">
 
@@ -549,6 +549,6 @@ console.log(form);
           {error && <p className="text-red-600 mt-2 text-sm">{error}</p>}
         </form>
       </div>
-    </div>
+    
   );
 }

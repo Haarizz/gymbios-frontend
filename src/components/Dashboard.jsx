@@ -60,12 +60,7 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="flex h-screen font-medium w-full">
-      <Sidebar
-        isOpen={isSidebarOpen}
-        toggleSidebar={() => setSidebarOpen(!isSidebarOpen)}
-      />
-
+        
       <div className="flex-1 overflow-auto bg-gray-50">
         <div className="lg:hidden p-4 bg-white shadow flex items-center">
           <HiMenu
@@ -130,6 +125,6 @@ export default function Dashboard() {
           <StaffStatus staff={staff} loading={loading} />
         </main>
       </div>
-    </div>
+   
   );
 }

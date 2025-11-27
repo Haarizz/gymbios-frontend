@@ -44,6 +44,7 @@ export default function AddCategoryPage() {
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  
 
   // validation state
   const [errors, setErrors] = useState({});
@@ -111,6 +112,7 @@ export default function AddCategoryPage() {
       setDescription("");
       setErrors({});
       navigate("/categories");
+
     } catch (err) {
       console.error("Create failed", err);
       // optionally set an error state to show to the user

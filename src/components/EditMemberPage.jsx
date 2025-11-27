@@ -165,7 +165,7 @@ export default function EditMemberPage() {
 
   return (
     <div className="flex h-screen font-sans bg-gray-50">
-      <Sidebar isOpen={isSidebarOpen} toggleSidebar={() => setSidebarOpen(!isSidebarOpen)} />
+
 
       <main className="flex-1 max-w-3xl mx-auto bg-white rounded shadow p-6 overflow-auto">
         <div className="flex items-center justify-between mb-4">

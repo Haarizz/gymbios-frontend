@@ -45,7 +45,7 @@ export default function EditStaffPage() {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar />
+      
 
       <div className="flex-1 p-6 overflow-auto max-w-4xl mx-auto">
         <h1 className="text-2xl font-semibold mb-4">Edit Staff Member</h1>

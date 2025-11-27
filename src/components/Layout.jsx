@@ -1,18 +1,20 @@
-import React from "react";
+import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 
-export default function Layout({ children }) {
+export default function Layout() {
   return (
-    <div className="flex">
-      {/* Sidebar fixed on the left */}
-      <div className="fixed left-0 top-0 h-full w-64 bg-white shadow">
-        <Sidebar />
+    <div className="layout-container" style={{ display: "flex", height: "100vh" }}>
+
+      {/* Sidebar */}
+      <Sidebar />
+
+      {/* Main Content Area */}
+      <div style={{ flexGrow: 1, overflowY: "auto", padding: "20px" }}>
+        
+        {/* This renders Dashboard, BookingsList, Members, etc */}
+        <Outlet />
       </div>
 
-      {/* Main content */}
-      <div className="ml-64 w-full p-6">
-        {children}
-      </div>
     </div>
   );
 }
