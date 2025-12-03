@@ -1,20 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
-import { createWastageReturn } from "../api/wastageReturnApi";
-import Layout from "./Layout";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { createWastageReturn, updateWastageReturn } from "../api/wastageReturnApi";
 import toast from "react-hot-toast";
-
-// --- DUMMY API FUNCTION (Simulates product list) ---
-const getProducts = async () => {
-    // Data adjusted to better match the modal picker UI
-    return [
-        { id: 101, name: "Whey Protein Powder 5lb", defaultPrice: 250.00 },
-        { id: 102, name: "Creatine Monohydrate 300g", defaultPrice: 55.50 },
-        { id: 103, name: "Premium Gym T-Shirt", defaultPrice: 35.00 },
-        { id: 104, name: "BCAA Energy Drink", defaultPrice: 89.99 },
-        { id: 105, name: "Yoga Mat Standard", defaultPrice: 120.00 },
-    ];
-};
 
 const initialProductState = { 
     name: "", 
@@ -24,36 +10,52 @@ const initialProductState = {
     productId: null
 };
 
-// --- START VOUCHER MODAL COMPONENT ---
-// Replaced the entire component to be the modal view
-const VoucherModal = ({ onClose }) => {
+// --- DUMMY API FUNCTION (Simulates product list for dropdown) ---
+const getProducts = async () => {
+    return [
+        { id: 101, name: "Whey Protein Powder 5lb", defaultPrice: 250.00 },
+        { id: 102, name: "Creatine Monohydrate 300g", defaultPrice: 55.50 },
+        { id: 103, name: "Premium Gym T-Shirt", defaultPrice: 35.00 },
+        { id: 104, name: "BCAA Energy Drink", defaultPrice: 89.99 },
+        { id: 105, name: "Yoga Mat Standard", defaultPrice: 120.00 },
+    ];
+};
+
+export default function VoucherFormModal({ onClose, initialData = null }) {
+    const isEdit = initialData && initialData.id;
+
     const [form, setForm] = useState(() => ({
-        voucherType: "WASTAGE",
-        date: new Date().toISOString().slice(0, 10),
-        reason: "",
-        location: "",
-        partyType: "N/A", // Added Party Type state
-        products: [],
-        notes: "",
-        totalValue: 0.0,
+        id: initialData?.id || null, 
+        voucherNumber: initialData?.voucherNumber || '', 
+        voucherType: initialData?.voucherType === "Goods Return" ? "RETURN" : "WASTAGE",
+        date: initialData?.date || new Date().toISOString().slice(0, 10),
+        reason: initialData?.reason || "",
+        location: initialData?.location || "",
+        // Initialize partyType to a safe default if the voucher type is RETURN
+        partyType: initialData?.partyType || (initialData?.voucherType === "Goods Return" ? "Supplier" : "N/A"),
+        products: initialData?.products || [],
+        notes: initialData?.notes || "",
+        totalValue: initialData?.totalValue || 0.0,
+        status: initialData?.status || "Draft",
     }));
 
     const [availableProducts, setAvailableProducts] = useState([]);
-    const navigate = useNavigate();
+    
+    // Calculate total value whenever products change
+    useEffect(() => {
+        const totalValue = form.products.reduce((sum, p) => sum + (p.subtotal || 0), 0);
+        setForm(p => ({ ...p, totalValue: parseFloat(totalValue.toFixed(2)) }));
+    }, [form.products]);
 
     // Load available products
     useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                const products = await getProducts();
-                setAvailableProducts(products);
-            } catch (error) {
-                console.error("Failed to fetch products:", error);
-                toast.error("Could not load product list.");
-            }
-        };
-        fetchProducts();
+        getProducts().then(setAvailableProducts).catch(() => toast.error("Could not load product list."));
     }, []);
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setForm(p => ({ ...p, [name]: value }));
+    };
 
     const addProductField = () => {
         setForm({ ...form, products: [...form.products, initialProductState] });
@@ -66,8 +68,7 @@ const VoucherModal = ({ onClose }) => {
         updated[index][field] = numericValue;
         updated[index].subtotal = (updated[index].qty || 0) * (updated[index].price || 0);
         
-        const totalValue = updated.reduce((sum, p) => sum + (p.subtotal || 0), 0);
-        setForm({ ...form, products: updated, totalValue: parseFloat(totalValue.toFixed(2)) });
+        setForm({ ...form, products: updated });
     };
 
     const handleProductSelect = (index, productId) => {
@@ -88,29 +89,29 @@ const VoucherModal = ({ onClose }) => {
         } else {
             updated[index] = initialProductState;
         }
-
-        const totalValue = updated.reduce((sum, p) => sum + (p.subtotal || 0), 0);
-        setForm({ ...form, products: updated, totalValue: parseFloat(totalValue.toFixed(2)) });
+        setForm({ ...form, products: updated });
     };
 
     const removeProductField = (index) => {
         const updatedProducts = form.products.filter((_, i) => i !== index);
-        const totalValue = updatedProducts.reduce((sum, p) => sum + (p.subtotal || 0), 0);
-
-        setForm({ 
-            ...form, 
-            products: updatedProducts,
-            totalValue: parseFloat(totalValue.toFixed(2))
-        });
+        setForm({ ...form, products: updatedProducts });
     }
 
-    const handleSubmit = async (submitStatus = "Pending Approval") => { // Default to Pending Approval
-        // Basic validation
+    const handleSubmit = async (submitStatus) => {
+        // Validate required fields
         if (!form.date || !form.reason || !form.location || form.products.length === 0) {
             toast.error("Please fill in Date, Reason, Location, and add at least one Product.");
             return;
         }
-        
+        if (!form.voucherNumber) {
+            toast.error("Please enter a Voucher Number.");
+            return;
+        }
+        // CRITICAL FIX FOR GOODS RETURN: Ensure partyType is set if voucherType is RETURN
+        if (form.voucherType === "RETURN" && (!form.partyType || form.partyType === 'N/A')) {
+            toast.error("Please select a Party Type for Goods Return.");
+            return;
+        }
         if (form.products.some(p => p.productId === null)) {
             toast.error("Please select a valid product for all rows.");
             return;
@@ -124,21 +125,34 @@ const VoucherModal = ({ onClose }) => {
             subtotal: p.subtotal    
         }));
         
-        const payload = {
-            ...form,
-            status: submitStatus, // Set final status
-            partyType: form.voucherType === "RETURN" ? form.partyType : null, // Only include if RETURN
+        const basePayload = {
+            voucherType: form.voucherType,
+            date: form.date,
+            reason: form.reason,
+            location: form.location,
+            status: submitStatus,
+            notes: form.notes,
+            // Ensure partyType is only sent if it's a RETURN voucher
+            partyType: form.voucherType === "RETURN" ? form.partyType : null,
+            totalValue: form.totalValue, 
             products: JSON.stringify(simplifiedProducts),
+            voucherNumber: form.voucherNumber, 
         };
 
+        const payload = isEdit ? { ...basePayload, id: form.id } : basePayload; 
+
         try {
-            await createWastageReturn(payload);
-            toast.success(`${form.voucherType} Voucher saved successfully!`);
-            onClose(); // Close modal on success
-            navigate("/wastage-return"); // Redirect to the list view and reload data
+            if (isEdit) {
+                await updateWastageReturn(form.id, payload);
+                toast.success(`Voucher ${form.voucherNumber} updated successfully!`);
+            } else {
+                await createWastageReturn(payload);
+                toast.success(`New Voucher ${form.voucherNumber} created successfully!`);
+            }
+            onClose(); 
         } catch (error) {
-            console.error("Failed to create voucher:", error);
-            toast.error("Failed to save voucher. Please try again.");
+            console.error("Failed to save voucher:", error);
+            toast.error(`Failed to save voucher. Check console.`);
         }
     };
     
@@ -151,14 +165,14 @@ const VoucherModal = ({ onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            {/* Modal */}
+        <div className="fixed inset-0 z-50 flex items-center justify-center"> 
+            
             <div className="bg-white w-[750px] max-h-[90vh] overflow-y-auto rounded-lg shadow-xl p-6 relative">
                 
                 {/* Header */}
                 <div className="flex justify-between items-start mb-4 border-b pb-2">
                     <div>
-                        <h2 className="text-lg font-semibold">New Wastage / Goods Return Voucher</h2>
+                        <h2 className="text-lg font-semibold">{isEdit ? `Edit Voucher ${form.id}` : "New Wastage / Goods Return Voucher"}</h2>
                         <p className="text-sm text-gray-500">Create a new voucher to document product wastage or goods returns</p>
                     </div>
                     <button onClick={onClose} aria-label="close" className="text-gray-500 hover:bg-gray-100 p-1 rounded">✕</button>
@@ -166,6 +180,21 @@ const VoucherModal = ({ onClose }) => {
 
                 {/* Main Form Fields */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                    
+                    {/* Voucher Number (MANUAL ENTRY) */}
+                    <div className="col-span-2">
+                        <label htmlFor="voucherNumber" className="block text-xs font-semibold text-gray-600">Voucher Number</label>
+                        <input 
+                            id="voucherNumber"
+                            name="voucherNumber"
+                            type="number" 
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
+                            value={form.voucherNumber}
+                            onChange={handleChange}
+                            disabled={false} 
+                        />
+                    </div>
+                    
                     {/* Voucher Type */}
                     <div className="col-span-2">
                         <label className="block text-xs font-semibold text-gray-600 mb-1">Voucher Type</label>
@@ -176,6 +205,7 @@ const VoucherModal = ({ onClose }) => {
                                     checked={form.voucherType === "WASTAGE"} 
                                     onChange={() => setForm({ ...form, voucherType: "WASTAGE", partyType: "N/A" })} 
                                     className="form-radio text-red-600 h-4 w-4"
+                                    disabled={isEdit}
                                 /> 
                                 <span className="ml-2 font-medium text-red-600">WASTAGE</span>
                             </label>
@@ -183,8 +213,14 @@ const VoucherModal = ({ onClose }) => {
                                 <input 
                                     type="radio" 
                                     checked={form.voucherType === "RETURN"} 
-                                    onChange={() => setForm({ ...form, voucherType: "RETURN" })} 
+                                    // ✅ FIX: Ensure partyType is set to a valid default ('Supplier') when switching to RETURN
+                                    onChange={() => setForm({ 
+                                        ...form, 
+                                        voucherType: "RETURN", 
+                                        partyType: form.partyType === "N/A" || !form.partyType ? "Supplier" : form.partyType 
+                                    })} 
                                     className="form-radio text-blue-600 h-4 w-4"
+                                    disabled={isEdit}
                                 /> 
                                 <span className="ml-2 font-medium text-blue-600">GOODS RETURN</span>
                             </label>
@@ -196,10 +232,11 @@ const VoucherModal = ({ onClose }) => {
                         <label htmlFor="date" className="block text-xs font-medium text-gray-600">Date</label>
                         <input 
                             id="date"
+                            name="date"
                             type="date" 
                             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
                             value={form.date}
-                            onChange={(e) => setForm({ ...form, date: e.target.value })} 
+                            onChange={handleChange} 
                         />
                     </div>
                 </div>
@@ -208,13 +245,15 @@ const VoucherModal = ({ onClose }) => {
                     {/* Party Type (Conditional) */}
                     {form.voucherType === "RETURN" && (
                         <div className="col-span-1">
-                            <label htmlFor="partyType" className="block text-xs font-medium text-gray-600">Party Type</label>
+                            <label htmlFor="partyType" className="block text-xs font-medium text-gray-600">Party Type *</label>
                             <select 
                                 id="partyType"
+                                name="partyType"
                                 value={form.partyType}
-                                onChange={(e) => setForm({ ...form, partyType: e.target.value })} 
+                                onChange={handleChange} 
                                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
                             >
+                                <option value="">Select Party</option> {/* Added explicit default option */}
                                 <option value="Supplier">Supplier</option>
                                 <option value="Customer">Customer</option>
                                 <option value="Other">Other</option>
@@ -227,8 +266,9 @@ const VoucherModal = ({ onClose }) => {
                         <label htmlFor="reason" className="block text-xs font-medium text-gray-600">Reason *</label>
                         <select 
                             id="reason"
+                            name="reason"
                             value={form.reason}
-                            onChange={(e) => setForm({ ...form, reason: e.target.value })} 
+                            onChange={handleChange} 
                             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
                         >
                             <option value="">Select reason</option>
@@ -246,8 +286,9 @@ const VoucherModal = ({ onClose }) => {
                         <label htmlFor="location" className="block text-xs font-medium text-gray-600">Location *</label>
                         <select 
                             id="location"
+                            name="location"
                             value={form.location}
-                            onChange={(e) => setForm({ ...form, location: e.target.value })} 
+                            onChange={handleChange} 
                             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
                         >
                             <option value="">Select location</option>
@@ -333,10 +374,11 @@ const VoucherModal = ({ onClose }) => {
                 <div className="mb-6">
                     <label className="block text-xs font-medium text-gray-600">Notes / Comments</label>
                     <textarea 
+                        name="notes"
                         placeholder="Enter any additional notes or comments" 
                         className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 h-20 resize-none text-sm"
                         value={form.notes}
-                        onChange={(e) => setForm({ ...form, notes: e.target.value })} 
+                        onChange={handleChange} 
                     />
                 </div>
 
@@ -349,34 +391,4 @@ const VoucherModal = ({ onClose }) => {
             </div>
         </div>
     );
-};
-// --- END VOUCHER MODAL COMPONENT ---
-
-
-// The main component now just manages state and renders the modal
-const CreateWastageReturn = () => {
-    // This file should typically not be a full page, but since your routing sends 
-    // it here, we render the modal within a simple layout.
-    const [showModal, setShowModal] = useState(true);
-    const navigate = useNavigate();
-
-    const handleClose = () => {
-        setShowModal(false);
-        // Navigate back to the list view when closing the modal
-        navigate("/wastage-return"); 
-    };
-
-    return (
-        <Layout>
-            <div className="p-6">
-                {/* Render the modal */}
-                {showModal && <VoucherModal onClose={handleClose} />}
-                
-                {/* Placeholder content behind the modal (to prevent blank screen) */}
-                <div className="text-center text-gray-500">Loading Wastage/Returns list view...</div>
-            </div>
-        </Layout>
-    );
-};
-
-export default CreateWastageReturn;
+}

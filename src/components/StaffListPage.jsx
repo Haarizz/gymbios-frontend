@@ -37,19 +37,19 @@ export default function StaffListPage() {
   };
 
   // FILTER LOGIC
-  const filteredStaff = staff.filter((s) => {
-    const matchesSearch =
-      s.firstname.toLowerCase().includes(search.toLowerCase()) ||
-      s.lastname.toLowerCase().includes(search.toLowerCase()) ||
-      (s.role || "").toLowerCase().includes(search.toLowerCase());
+const filteredStaff = staff.filter((s) => {
+  const matchesSearch =
+    (s.firstname || "").toLowerCase().includes(search.toLowerCase()) ||
+    (s.lastname || "").toLowerCase().includes(search.toLowerCase()) ||
+    (s.role || "").toLowerCase().includes(search.toLowerCase());
 
-    const roleMatch = roleFilter === "All" || s.role === roleFilter;
-    const branchMatch = branchFilter === "All" || s.branch === branchFilter;
-    const departmentMatch =
-      departmentFilter === "All" || s.department === departmentFilter;
+  const roleMatch = roleFilter === "All" || s.role === roleFilter;
+  const branchMatch = branchFilter === "All" || s.branch === branchFilter;
+  const departmentMatch =
+    departmentFilter === "All" || s.department === departmentFilter;
 
-    return matchesSearch && roleMatch && branchMatch && departmentMatch;
-  });
+  return matchesSearch && roleMatch && branchMatch && departmentMatch;
+});
 
   return (
     <div className="flex h-screen bg-gray-50">

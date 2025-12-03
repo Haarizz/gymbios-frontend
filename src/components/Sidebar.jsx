@@ -1,186 +1,166 @@
-import { Link, useLocation,Navigate, useNavigate } from "react-router-dom";
-import { HiChevronDown, HiMenu } from "react-icons/hi";
+import { Link, useNavigate } from "react-router-dom";
 import { sidebarMenu } from "../api/sidebarMenu";
-import { useState } from "react";
+import { useSidebar } from "./Layout";
+import * as HeroIcons from "react-icons/hi"; // Import all Heroicons
 
-export default function Sidebar({ isOpen, toggleSidebar }) {
-  const location = useLocation();
-  const [openSections, setOpenSections] = useState({});
-  const navigate=useNavigate();
-  const toggleSection = (section) => {
-    setOpenSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
-  };
-
-  const logout = () => {
-  localStorage.removeItem("token");
-  window.location.href = "/login"; 
+// Helper component to dynamically render an icon by its name
+const DynamicIcon = ({ name, className }) => {
+  const IconComponent = HeroIcons[name];
+  if (!IconComponent) return null;
+  return <IconComponent className={className} />;
 };
 
+export default function Sidebar() {
+  const navigate = useNavigate();
+  // Get state and functions from the context provided by Layout.js
+  const { expandedSections, toggleSection, currentPath } = useSidebar();
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    window.location.href = "/login";
+  };
+
+  // Colors based on your image
+  const bgColor = "#236b6b";
+  const bgDarker = "#1a5252";
+  const bgSubmenu = "#1f6060";
+  const textColor = "#e0f2f1";
+  const activeTextColor = "#ffffff";
+  const hoverBg = "rgba(255, 255, 255, 0.1)";
+
+
   return (
-    <>
-      {/* Mobile dark backdrop */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 z-30 lg:hidden"
-          onClick={toggleSidebar}
-        />
-      )}
-
-      {/* Sidebar */}
-      <div
-        className={`
-          bg-teal-800 text-white flex flex-col h-full w-64 z-40
-          fixed top-0 left-0 transform transition-transform duration-300
-          ${isOpen ? "translate-x-0" : "-translate-x-full"}
-          lg:relative lg:translate-x-0
-        `}
-      >
-        {/* Header */}
-        <div className="px-5 py-6 flex items-center gap-3 border-b border-green-900">
-          <div className="rounded-full bg-teal-600 h-10 w-10 flex items-center justify-center font-bold">
-            <span>GB</span>
-          </div>
-          <div>
-            <h1 className="font-bold text-lg leading-tight">GymBios</h1>
-            <p className="text-xs text-teal-200">Business Operating System</p>
-          </div>
-
-          {/* Mobile close */}
-          <HiMenu
-            className="ml-auto text-xl cursor-pointer lg:hidden"
-            onClick={toggleSidebar}
-          />
+    <div
+      className="flex flex-col h-full w-64 z-40 fixed lg:relative transition-transform duration-300 shadow-xl font-sans"
+      style={{ backgroundColor: bgColor, color: textColor }}
+    >
+      {/* --- Header / Logo Area --- */}
+      <div className="px-5 py-6 flex items-center gap-3">
+        <div className="rounded-2xl h-12 w-12 flex items-center justify-center shadow-sm" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
+          <span className="text-2xl">🏋️</span>
         </div>
+        <div>
+          <h1 className="font-bold text-xl leading-none tracking-wide text-white">GymBios</h1>
+          <p className="text-[11px] opacity-80 mt-1" style={{ color: textColor }}>Business Operating System</p>
+        </div>
+      </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 overflow-auto px-2 pt-3">
-          {sidebarMenu.map((group, idx) => (
-            <div key={idx} className="mb-3">
-              {/* Section Title */}
-              <div className="text-teal-200 uppercase text-xs font-bold px-3 py-2 tracking-wide">
-                {group.section}
-              </div>
+      {/* --- Navigation Menu --- */}
+      <nav className="flex-1 overflow-y-auto custom-scrollbar">
+        <div className="py-2">
+          {sidebarMenu.map((group, idx) => {
+            const isExpanded = expandedSections[group.section];
+            // Check if the main section or any of its children are active
+            const isActive = group.path === currentPath || group.items.some(item => item.path === currentPath);
 
-              {/* Items */}
-              {group.collapsible ? (
-                <div>
+            // --- RENDER A COLLAPSIBLE SECTION (e.g., Community, Sales) ---
+            if (group.collapsible) {
+              return (
+                <div key={idx}>
                   <button
                     onClick={() => toggleSection(group.section)}
-                    className="flex items-center justify-between w-full px-3 py-2 text-sm hover:bg-teal-700 rounded"
+                    className={`w-full flex items-center justify-between px-4 py-3 text-[15px] font-medium transition-colors duration-200
+                      ${isActive || isExpanded ? `bg-[${bgDarker}] text-[${activeTextColor}]` : `hover:bg-[${hoverBg}] hover:text-[${activeTextColor}]`}
+                      ${isActive && !isExpanded ? 'border-l-4 border-white' : 'border-l-4 border-transparent'}
+                    `}
+                    style={{
+                      backgroundColor: (isActive || isExpanded) ? bgDarker : 'transparent',
+                      color: (isActive || isExpanded) ? activeTextColor : textColor,
+                    }}
                   >
-                    <span>{group.section}</span>
-                    <HiChevronDown
-                      className={`transition-transform ${
-                        openSections[group.section] ? "rotate-180" : ""
-                      }`}
+                    <div className="flex items-center gap-4">
+                      <DynamicIcon name={group.icon} className="text-xl" />
+                      <span>{group.section}</span>
+                    </div>
+                    <DynamicIcon
+                      name={isExpanded ? "HiChevronDown" : "HiChevronRight"}
+                      className={`text-sm transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
                     />
                   </button>
 
+                  {/* Submenu Items */}
                   <div
-                    className={`overflow-hidden transition-all ${
-                      openSections[group.section] ? "max-h-96" : "max-h-0"
-                    }`}
+                    className={`overflow-hidden transition-all duration-300 ease-in-out`}
+                    style={{
+                        backgroundColor: bgSubmenu,
+                        maxHeight: isExpanded ? `${group.items.length * 48}px` : '0px', // Smooth height transition
+                        opacity: isExpanded ? 1 : 0
+                    }}
                   >
-                    {group.items.map(({ label, icon: Icon, path }) => {
-                      const active = location.pathname === path;
-
+                    {group.items.map(({ label, icon, path }) => {
+                      const isSubActive = currentPath === path;
                       return (
                         <Link
                           key={path}
                           to={path}
-                          onClick={toggleSidebar}
-                          className={`flex items-center gap-3 px-6 py-2 text-sm rounded-md mb-[2px]
-                            ${
-                              active
-                                ? "bg-white text-teal-900 font-semibold border-l-4 border-green-500"
-                                : "hover:bg-teal-700"
-                            }
+                          className={`flex items-center gap-4 px-4 py-3 text-[14px] transition-colors duration-200 pl-12
+                            ${isSubActive ? `text-[${activeTextColor}] font-medium` : `hover:text-[${activeTextColor}] hover:bg-[${hoverBg}]`}
                           `}
+                          style={{ color: isSubActive ? activeTextColor : textColor }}
                         >
-                          <div
-                            className={`h-7 w-7 rounded-full flex items-center justify-center 
-                              ${
-                                active
-                                  ? "bg-green-100 text-teal-900"
-                                  : "bg-teal-900 text-teal-100"
-                              }
-                            `}
-                          >
-                            <Icon className="text-[15px]" />
-                          </div>
-
+                          <DynamicIcon name={icon} className="text-lg" />
                           {label}
                         </Link>
                       );
                     })}
                   </div>
                 </div>
-              ) : (
-                group.items.map(({ label, icon: Icon, path }) => {
-                  const active = location.pathname === path;
+              );
+            }
 
-                  return (
-                    <Link
-                      key={path}
-                      to={path}
-                      className={`flex items-center gap-3 px-6 py-2 mb-[2px] text-sm rounded-md
-                        ${
-                          active
-                            ? "bg-white text-teal-900 font-semibold border-l-4 border-green-500"
-                            : "hover:bg-teal-700"
-                        }
-                      `}
-                    >
-                      <div
-                        className={`h-7 w-7 rounded-full flex items-center justify-center 
-                          ${
-                            active
-                              ? "bg-green-100 text-teal-900"
-                              : "bg-teal-900 text-teal-100"
-                          }
-                        `}
-                      >
-                        <Icon className="text-[15px]" />
-                      </div>
+            // --- RENDER A DIRECT LINK (e.g., Dashboard, GymOS) ---
+            return (
+              <Link
+                key={idx}
+                to={group.path}
+                className={`relative flex items-center justify-between px-4 py-3 text-[15px] font-medium transition-colors duration-200
+                  ${isActive ? `bg-[${bgDarker}] text-[${activeTextColor}] border-l-4 border-white` : `hover:bg-[${hoverBg}] hover:text-[${activeTextColor}] border-l-4 border-transparent`}
+                `}
+                style={{
+                  backgroundColor: isActive ? bgDarker : 'transparent',
+                  color: isActive ? activeTextColor : textColor,
+                }}
+              >
+                <div className="flex items-center gap-4">
+                  <DynamicIcon name={group.icon} className="text-xl" />
+                  <span>{group.section}</span>
+                </div>
+                {/* Add a chevron for "My Profile" to match the image */}
+                {group.isProfileLink && (
+                   <DynamicIcon name="HiChevronRight" className="text-sm" />
+                )}
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
 
-                      {label}
-                    </Link>
-                  );
-                })
-              )}
-            </div>
-          ))}
-        </nav>
-
-        {/* Footer - Clickable Profile */}
+      {/* --- Footer Area --- */}
+      <div className="p-5" style={{ backgroundColor: bgDarker }}>
+        {/* Profile */}
         <div
-          className="p-4 border-t border-teal-700 cursor-pointer hover:bg-teal-700 transition"
-          onClick={() => (navigate('/profile'))}
+          className="flex items-center gap-3 mb-6 cursor-pointer hover:opacity-90 transition"
+          onClick={() => navigate('/profile')}
         >
-          <div className="flex items-center gap-3">
-            <div className="rounded-full bg-teal-600 h-10 w-10 flex items-center justify-center">
-              GM
-            </div>
-            <div>
-              <p className="font-semibold text-sm">Gym Manager</p>
-              <p className="text-xs text-teal-300">admin@gymbios.com</p>
-            </div>
+          <div className="h-10 w-10 rounded-full flex items-center justify-center text-sm font-semibold" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', color: 'white' }}>
+            GM
+          </div>
+          <div className="overflow-hidden">
+            <p className="text-sm font-semibold text-white truncate">Gym Manager</p>
+            <p className="text-xs truncate" style={{ color: textColor }}>admin@gymbios.com</p>
           </div>
         </div>
 
-        {/* Sign Out Button (still separate) */}
-        <div className="px-4 pb-4">
-          <button
-            onClick={logout}
-            className="mt-3 w-full px-3 py-2 bg-teal-600 rounded text-sm hover:bg-teal-500"
-          >
-            Sign Out
-          </button>
-        </div>
+        {/* Sign Out Button */}
+        <button
+          onClick={logout}
+          className="w-full py-2.5 rounded-lg text-sm font-bold shadow-sm transition-colors flex items-center justify-center gap-2"
+          style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)', color: activeTextColor }}
+        >
+          <DynamicIcon name="HiOutlineLogout" className="text-lg" />
+          Sign Out
+        </button>
       </div>
-    </>
+    </div>
   );
 }

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import Sidebar from "../components/Sidebar";
 import { getSingleStaff, updateStaff } from "../api/staff";
 import { useNavigate, useParams } from "react-router-dom";
 
